@@ -1,0 +1,79 @@
+version: "3.8"
+
+services:
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    restart: unless-stopped
+    networks:
+      - ai-net
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama:/root/.ollama
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    restart: unless-stopped
+    networks:
+      - ai-net
+    ports:
+      - "3000:8080"      # direct debug; NPM exposes via ai.mabs-mahbub.com
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - WEBUI_AUTH=True
+
+      # --- RAG + Qdrant config ---
+      - VECTOR_DB=qdrant
+      - QDRANT_URI=http://qdrant:6333
+      - RAG_EMBEDDING_ENGINE=ollama
+      - RAG_EMBEDDING_MODEL=nomic-embed-text
+    volumes:
+      - open-webui:/app/backend/data
+
+  nginx-proxy-manager:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: nginx-proxy-manager
+    restart: unless-stopped
+    ports:
+      - "80:80"      # HTTP
+      - "81:81"      # NPM admin UI
+      - "443:443"    # HTTPS
+    volumes:
+      - npm-data:/data
+      - npm-letsencrypt:/etc/letsencrypt
+    networks:
+      - ai-net
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    networks:
+      - ai-net
+
+  qdrant:
+    image: qdrant/qdrant
+    container_name: qdrant
+    restart: unless-stopped
+    networks:
+      - ai-net
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+networks:
+  ai-net:
+
+volumes:
+  ollama:
+  open-webui:
+  npm-data:
+  npm-letsencrypt:
+  qdrant_data:
