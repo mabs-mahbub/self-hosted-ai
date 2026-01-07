@@ -10,6 +10,15 @@ This repository provides a self-hosted AI stack on Azure. The intended flow is: 
 - **Nginx Proxy Manager** for easy reverse-proxy configuration.
 - **Grafana + Prometheus (optional)** for monitoring.
 
+
+## 📸 Screenshots
+
+### Architecture - Infrastrcuture Design
+![Architecture](screenshots/diagram.jpeg)
+
+### Site Page
+![Page](screenshots/site.png)
+
 ## Prerequisites
 
 - Terraform `>= 1.6.0`
